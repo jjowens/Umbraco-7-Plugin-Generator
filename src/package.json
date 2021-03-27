@@ -1,0 +1,19 @@
+{
+  "name": "umbraco-7-plugin-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jjowens/umbraco-7-plugin-generator.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jjowens/umbraco-7-plugin-generator/issues"
+  },
+  "homepage": "https://github.com/jjowens/umbraco-7-plugin-generator#readme"
+}
