@@ -1,0 +1,1 @@
+  <add alias="##PLUGINALIAS##" name="##PLUGINNAME##" icon="##ICON##" sortOrder="##SORTORDER##" />
