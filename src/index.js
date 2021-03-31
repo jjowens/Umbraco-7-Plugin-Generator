@@ -3,7 +3,6 @@ const path = require('path');
 
 var myNamespace = function UmbracoPluginGenerator() {
     
-    let pluginUmbracoVersion = 7;
     let currentPluginConfig = {};
     let pluginFolderPath = "";
     let pluginRelativeFolderPath = "";
@@ -14,7 +13,7 @@ var myNamespace = function UmbracoPluginGenerator() {
 
     function GeneratePlugin(pluginConfig) {
         currentPluginConfig = pluginConfig;
-        templateFolderPath = __dirname + "\\template";
+        templateFolderPath = __dirname + "\\templates";
         
         if (currentPluginConfig.alias === undefined) {
             currentPluginConfig.alias = currentPluginConfig.pluginname.toLowerCase().trim();
@@ -43,12 +42,12 @@ var myNamespace = function UmbracoPluginGenerator() {
                 fields.push({name: "##CONTROLLERNAME##", value: fileObj.controllername});
 
                 // CREATE DASHBOARD FILE
-                templateFilePath = templateFolderPath + "\\generic\\dashboard-default.html";
+                templateFilePath = templateFolderPath + "\\dashboard-default.html";
                 writeFilePath = pluginFolderPath + "\\" + fileObj.view;
                 writeContentToFile(writeFilePath, templateFilePath, fields);
 
                 // CREATE CONTROLLER
-                templateFilePath = templateFolderPath + "\\generic\\controller-default.js";
+                templateFilePath = templateFolderPath + "\\controller-default.js";
                 writeFilePath = pluginFolderPath + "\\" + fileObj.controllerfile;
                 writeContentToFile(writeFilePath, templateFilePath, fields);
 
@@ -64,7 +63,7 @@ var myNamespace = function UmbracoPluginGenerator() {
 
         // CREATE LANGUAGE FILE
         let langFilePath = pluginFolderPath + "/lang/en-us.xml";
-        templateFilePath = templateFolderPath + "\\" + pluginUmbracoVersion +  "\\lang-file.xml";
+        templateFilePath = templateFolderPath + "\\lang-file.xml";
         contentFields = [
             { name: "##ALIAS##", value: "en"},
             { name: "##NAME##", value: "English (US)"},
@@ -75,10 +74,51 @@ var myNamespace = function UmbracoPluginGenerator() {
         ]
         writeContentToFile(langFilePath, templateFilePath, contentFields);
 
-        // UPDATE XML FILES
-        if (pluginUmbracoVersion === 7) {
-            createUmbraco7Files();
-        }
+        // UPDATE CONFIG FILES
+        // DASHBOARD CONFIG. 
+        // CREATE TABS DATA
+        let tabTemplate = fs.readFileSync(templateFolderPath + "\\dashboard-config-tabs.txt", "utf-8");
+        let tabContent = "";
+
+        currentPluginConfig.dashboards.forEach(item => {
+            let caption = "Content";
+            let dashboardFilePath = pluginRelativeFolderPath + "/" + item.view;
+
+            if (item.caption !== undefined) {
+                caption = item.caption;
+            }
+
+            let tempContent = replaceContent(contentFields, tabTemplate);
+            tempContent = tempContent.replace("##CAPTION##", caption);
+            tempContent = tempContent.replace("##DASHBOARDFILEPATH##", dashboardFilePath);
+
+            tabContent += tempContent + "\r\n";
+
+        });
+
+        // CREATE SECTION
+        let sectionTemplate = fs.readFileSync(templateFolderPath + "\\dashboard-config.txt", "utf-8");
+        let sectionContent = "";
+
+        sectionContent = replaceContent(contentFields, sectionTemplate);
+        sectionContent = sectionContent.replace("##TABS##", tabContent);
+        sectionContent = sectionContent.replace("##AREAS##", currentPluginConfig.pluginname.toLowerCase());
+
+        //console.log(tabContent);
+        console.log(sectionContent);
+
+        // APPLICATIONS CONFIG
+        // CREATE APPLICATION LINE
+        let applicationTemplate = fs.readFileSync(templateFolderPath + "\\applications-config.txt", "utf-8");
+        let applicationContent = "";
+        let sortOrder = 10;
+        let trayIcon = "traydeveloper";
+
+        applicationContent = replaceContent(contentFields, applicationTemplate);
+        applicationContent = applicationContent.replace("##SORTORDER##", sortOrder);
+        applicationContent = applicationContent.replace("##ICON##", trayIcon);
+
+        console.log(applicationContent);
     }
 
     function writeToFile(filePath, data) {
@@ -212,55 +252,6 @@ var myNamespace = function UmbracoPluginGenerator() {
 
         return manifest;
     }
-
-    function createUmbraco7Files() {
-            // DASHBOARD CONFIG. 
-            // CREATE TABS DATA
-            let tabTemplate = fs.readFileSync(templateFolderPath + "\\7\\dashboard-config-tabs.txt", "utf-8");
-            let tabContent = "";
-
-            currentPluginConfig.dashboards.forEach(item => {
-                let caption = "Content";
-                let dashboardFilePath = pluginRelativeFolderPath + "/" + item.view;
-
-                if (item.caption !== undefined) {
-                    caption = item.caption;
-                }
-
-                let tempContent = replaceContent(contentFields, tabTemplate);
-                tempContent = tempContent.replace("##CAPTION##", caption);
-                tempContent = tempContent.replace("##DASHBOARDFILEPATH##", dashboardFilePath);
-
-                tabContent += tempContent + "\r\n";
-
-            });
-
-            // CREATE SECTION
-            let sectionTemplate = fs.readFileSync(templateFolderPath + "\\7\\dashboard-config.txt", "utf-8");
-            let sectionContent = "";
-
-            sectionContent = replaceContent(contentFields, sectionTemplate);
-            sectionContent = sectionContent.replace("##TABS##", tabContent);
-            sectionContent = sectionContent.replace("##AREAS##", currentPluginConfig.pluginname.toLowerCase());
-
-            //console.log(tabContent);
-            console.log(sectionContent);
-
-            // APPLICATIONS CONFIG
-            // CREATE APPLICATION LINE
-            let applicationTemplate = fs.readFileSync(templateFolderPath + "\\7\\applications-config.txt", "utf-8");
-            let applicationContent = "";
-            let sortOrder = 10;
-            let trayIcon = "traydeveloper";
-
-            applicationContent = replaceContent(contentFields, applicationTemplate);
-            applicationContent = applicationContent.replace("##SORTORDER##", sortOrder);
-            applicationContent = applicationContent.replace("##ICON##", trayIcon);
-
-            console.log(applicationContent);
-
-    }
-
 
     return {
         GeneratePlugin: GeneratePlugin
